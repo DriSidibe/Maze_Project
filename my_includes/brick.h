@@ -9,8 +9,8 @@
  *  Description: Longer description
  */
 typedef struct brick{
-	int width = WALL_DEFAULT_BRICK_SIZE;
-	int height = WALL_DEFAULT_BRICK_SIZE;
+	int width = wall_default_brick_size;
+	int height = wall_default_brick_size;
 	int x;
 	int y;
 }

@@ -1,7 +1,6 @@
 #ifndef __WORL_H__
 #define __WORLD_H__
 
-#include "constants.h"
 
 /**
  * struct world - the ground structure

@@ -1,36 +1,45 @@
 #ifndef __CONSTANTS_H__
 #define __CONSTANTS_H__
 
+#include <math.h>
+
+
+int map_width = 640;
+int map_height = 512;
 
 // windows parameters
-#define SCREEN_WIDTH 640
-#define SCREEN_HEIGHT 480
-#define WINDOW_TITLE "MAZE"
+int screen_width = 640;
+char *window_title = "MAZE";
 
 // the defaut height and weight of the composit cube of the walls
-#define WALL_DEFAULT_BRICK_SIZE 64
+int wall_default_brick_size = 64;
 
 // field of view
-#define FOV 60 
+int fov = 60;
 
 // player default setting
-#define PLAYER_DEFAULT_ANGLE_FACED 45
-#define PLAYER_DEFAULT_X_POS 0
-#define  PLAYER_DEFAULT_Y_POS 0
+int player_defaut_angle_faced = 45;
+int player_default_x_pos = 128;
+int player_default_y_pos = 128;
+int player_default_step = 0.5;
 
 // projection plan setting
-#define PROJECTION_PLAN_DEFAULT_WIDE 320
-#define PROJECTION_PLAN_DEFAULT_HIGHT = 100
-#define PROJECTION_PLAN_DEFAULT_CENTER_X (PROJECTION_PLAN_DEFAULT_WIDE / 2)
-#define PROJECTION_PLAN_DEFAULT_CENTER_Y (PROJECTION_PLAN_DEFAULT_HIGHT / 2)
-#define DISTANCE_TO_THE_PROJECTION_PALN (PROJECTION_PLAN_DEFAULT_WIDE / tan(FOV))
-#define ANGLE_BETWEEN_SUBSEQUENCE_RAYS (FOV / PROJECTIOn_PLAN_DEFAULT_WIDE)
+int projection_plan_default_wide = 320;
+int projection_plan_default_height = 320;
 
-// the center of the game ground
-#define WORLD_CENTER_X 0
-#define WORLD_CENTER_y 0
-
-#include <math.h>
+//the map mask
+int map_mask[10][12] = {
+        {1,1,1,1,1,1,1,1},
+        {1,0,0,0,0,0,0,1},
+        {1,0,0,0,0,0,0,1},
+        {1,0,0,1,0,0,0,1},
+        {1,0,0,0,0,0,0,1},
+        {1,0,0,0,0,0,0,1},
+        {1,0,0,0,1,0,0,1},
+        {1,0,0,0,0,0,0,1},
+        {1,0,0,0,0,0,0,1},
+        {1,1,1,1,1,1,1,1}
+    };
 
 /**
  * struct POV - the ground structure

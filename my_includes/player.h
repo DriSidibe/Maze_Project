@@ -9,8 +9,9 @@
  *  Description: Longer description
  */
 typedef struct player{
-        int FOV = FOV;
-		struct *POV = malloc(sizeof(POV));
+        int pos_x;
+        int pos_y;
+        int step;
 }
 player;
 

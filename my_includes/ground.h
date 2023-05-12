@@ -11,7 +11,7 @@
 typedef struct ground{
 	int width;
 	int height;
-	int wall_bricks_size = WALL_DEFAULT_BRICKS_SIZE;
+	int wall_bricks_size = wall_default_brick_size;
 }
 ground;
 
