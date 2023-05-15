@@ -1,54 +1,81 @@
-#include <SDL.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <math.h>
 #include "../my_includes/constants.h"
-#include "../my_includes/player.h"
+#include "../my_includes/world.h"
 
 
 
-
-
-void DrawCircle(SDL_Renderer* renderer, int32_t centreX, int32_t centreY, int32_t radius);
-
-int run_2D(int argc, char **argv[])
+int run(int argc, char **argv[])
 {
 
-    // intialization
+    // variables declaration
 	SDL_Window *window = NULL;
     SDL_Renderer *renderer = NULL;
 	SDL_Event events;
-    int isOpen = 1;
+    int isOpen;
     player *player = NULL;
+    int ray_x;
+    int ray_y;
+    float k;
+    int mouse_pos_x;
+    int mouse_pos_y;
+    float mouse_pos_x_old;
+    float mouse_pos_y_old;
+    float collide_point_x, collide_point_y;
+    float step_angle;
+    float tmp_angle;
+    float straight_vect_x;
+    float straight_vect_y;
+    SDL_Rect map = {
+        20, 20, map_width, map_height
+    };
     
+    // variables intialization
+    isOpen = 1;
     player = malloc(sizeof(player));
     player->pos_x = player_default_x_pos;
     player->pos_y = player_default_y_pos;
-    player->step = player_default_step;
+    mouse_pos_x = 0;
+    mouse_pos_y = 0;
+    tmp_angle = 0;
+    player->fov = 60;
+    step_angle = player->pov/projection_plan_default_wide;
 
     //----------------------------------
-
-	
-    SDL_Color orange = {255, 127, 40, 255};
 	
 
+
+
+
+
+    // sdl intialisations
 	if (SDL_Init(SDL_INIT_VIDEO) < 0)
     {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "[DEBUG] > %s", SDL_GetError());
         return EXIT_FAILURE;
     }
     
-	if (SDL_CreateWindowAndRenderer(map_width + 40, map_height + 40, SDL_WINDOW_SHOWN, &window, &renderer) < 0)
+	if (SDL_CreateWindowAndRenderer(map_width + space_between_map*2, map_height + space_between_map*2, SDL_WINDOW_SHOWN, &window, &renderer) < 0)
     {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "[DEBUG] > %s", SDL_GetError());        
         SDL_Quit(); 
         return EXIT_FAILURE;
     }
-
-	SDL_Rect map = {
-        20, 20, map_width, map_height
-    };
+    //-----------------------------------------
     
 
+
+
+
+
+
+
+
+
+
+
+    //main loop
     while (isOpen)
     {
         while (SDL_PollEvent(&events))
@@ -57,27 +84,25 @@ int run_2D(int argc, char **argv[])
             {
                 case SDL_QUIT:
                     isOpen = 0;
+                    free(player);
                     break;
                 case SDL_KEYDOWN:
                     switch (events.key.keysym.sym)
                     {
-                        case SDLK_LEFT:
-                            player->pos_x--;;
-                            break;
-                        case SDLK_RIGHT:
-                            player->pos_x++;
-                            break;
-                        case SDLK_UP:
-                            player->pos_y--;
-                            break;
-                        case SDLK_DOWN:
-                            player->pos_y++;
+                        case SDLK_a:
+                            k = 1/(sqrt(pow(ray_x, 2)+pow(ray_y, 2))/player_default_step);
+                            if (k < 1)
+                            {
+                                player->pos_x += k*ray_x;
+                                player->pos_y += k*ray_y;
+                                set_player_grid_pos(player);  
+                            }
                             break;
                     }
                     break;
             }
 
-			/* C’est à partir de maintenant que ça se passe. */
+
 			if(0 != SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255))
 			{
 				SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "[DEBUG] > %s", SDL_GetError());        
@@ -86,7 +111,16 @@ int run_2D(int argc, char **argv[])
 			}
 			SDL_RenderClear( renderer );
 
-			// drawwing area
+            // set ray end position
+            ray_x = mouse_pos_x - player->pos_x;
+            ray_y = mouse_pos_y - player->pos_y;
+
+            mouse_pos_x_old = mouse_pos_x;
+            mouse_pos_y_old = mouse_pos_y;
+            SDL_GetMouseState(&mouse_pos_x, &mouse_pos_y);
+
+			// drawing area
+
             SDL_SetRenderDrawColor( renderer, 0, 0, 0, 255 );
             SDL_RenderFillRect( renderer, &map );
 
@@ -99,7 +133,7 @@ int run_2D(int argc, char **argv[])
                     {
                         SDL_SetRenderDrawColor( renderer, 255, 255, 255, 255 );
                         SDL_Rect r = {
-                            i*wall_default_brick_size + 20, j*wall_default_brick_size + 20,
+                            i*wall_default_brick_size + space_between_map, j*wall_default_brick_size + space_between_map,
                             wall_default_brick_size, wall_default_brick_size
                         };
                         SDL_RenderFillRect( renderer, &r );
@@ -107,22 +141,76 @@ int run_2D(int argc, char **argv[])
                 }
             }
 
+            //calculate the player pov
+            player->pov = (acosf((ray_x)/(sqrt(pow(ray_x, 2)+pow(ray_y, 2))))*180)/PI;
+
             //draw player
             SDL_SetRenderDrawColor( renderer, 0, 255, 0, 255 );
-            DrawCircle(renderer, player->pos_x + 20, player->pos_y + 20, 5);
-			
+            DrawCircle(renderer, player->pos_x, player->pos_y, 5);
 
-			//-----------------------------------------
+            //draw orientation straight
+            SDL_SetRenderDrawColor( renderer, 255, 0, 0, 255 );
+            SDL_RenderDrawLine(renderer, player->pos_x, player->pos_y, mouse_pos_x, mouse_pos_y);
 
+            //draw throwed rays
+            tmp_angle = player->pov;
+
+
+            
+            
+
+            /*
+            //draw left rays
+            while (tmp_angle <= player->fov/2)
+            {
+               
+               tmp_angle += step_angle;
+            }
+            tmp_angle = player->pov;
+
+            //draw right rays
+            while (tmp_angle >= player->fov/2)
+            {
+               
+            }*/
+            
+
+            //-----------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+            //render the renderer
 			SDL_RenderPresent(renderer);
 			if(0 != SDL_RenderClear(renderer))
-				{
+			{
 					SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "[DEBUG] > %s", SDL_GetError());        
 					SDL_Quit(); 
 					return EXIT_FAILURE;
-				}
-        	}
+			}
+            //-----------------------------------------
+
+            // variables controle
+
+            //-----------------------------------------
+
+    	}
     }
+    //-----------------------------------------
     
 	SDL_DestroyRenderer(renderer);
 	SDL_DestroyWindow(window);
@@ -131,7 +219,18 @@ int run_2D(int argc, char **argv[])
     return 0;
 }
 
-void DrawCircle(SDL_Renderer* renderer, int32_t centreX, int32_t centreY, int32_t radius)
+
+
+
+
+
+
+
+
+
+
+// fonctions
+void DrawCircle(SDL_Renderer* renderer, float centreX, float centreY, float radius)
 {
     const int32_t diameter = (radius * 2);
 
@@ -167,4 +266,38 @@ void DrawCircle(SDL_Renderer* renderer, int32_t centreX, int32_t centreY, int32_
             error += (tx - diameter);
         }
     }
+}
+
+void get_first_horiz_line_inter(float f_x, float f_y, float p_x, float p_y)
+{
+
+}
+
+void get_collide_wall(float p_x, float p_y, float x, float y)
+{
+    float f_x, f_y;
+
+    get_first_horiz_line_inter(f_x, f_y, p_x, p_y);
+}
+
+void set_player_grid_pos(player *p)
+{
+    float ratio_x = p->pos_x/64;
+    float ratio_y = p->pos_y/64;
+
+    p->pos_x_grid = floorf(ratio_x);
+    p->pos_y_grid = floorf(ratio_y);
+}
+
+void calculate_player_orientaion_ray(float p_x, float p_y, float m_x, float m_y, float a, float b)
+{
+    a = (p_y - m_y)/(p_x - m_x);
+    b = p_y - a*p_x;
+}
+
+void get_ray_director_vector(player *p, float mx, float my, float *s_x, float *s_y)
+{
+    *s_x = mx - p->pos_x;
+    *s_y = my - p->pos_y;
+    
 }
