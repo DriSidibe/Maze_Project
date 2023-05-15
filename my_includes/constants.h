@@ -22,11 +22,13 @@ int fov = 60;
 
 // player default setting
 int player_defaut_angle_faced = 45;
-int player_default_x_pos = 128;
-int player_default_y_pos = 128;
+int player_default_x_pos = 80;
+int player_default_y_pos = 80;
 int player_default_x_grid_pos = 1;
 int player_default_y_grid_pos = 1;
 int player_default_step = 10;
+float player_default_fov = 60;
+float player_default_pov = 45;
 
 // projection plan setting
 int projection_plan_default_wide = 320;

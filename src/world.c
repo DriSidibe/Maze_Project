@@ -3,10 +3,12 @@
 #include <math.h>
 #include "../my_includes/constants.h"
 #include "../my_includes/world.h"
+#include "../my_includes/global.h"
 
 
+Player *player = NULL;
 
-int run(int argc, char **argv[])
+int run(int argc, char *argv[])
 {
 
     // variables declaration
@@ -14,33 +16,22 @@ int run(int argc, char **argv[])
     SDL_Renderer *renderer = NULL;
 	SDL_Event events;
     int isOpen;
-    player *player = NULL;
-    int ray_x;
-    int ray_y;
-    float k;
-    int mouse_pos_x;
-    int mouse_pos_y;
-    float mouse_pos_x_old;
-    float mouse_pos_y_old;
-    float collide_point_x, collide_point_y;
-    float step_angle;
-    float tmp_angle;
-    float straight_vect_x;
-    float straight_vect_y;
     SDL_Rect map = {
         20, 20, map_width, map_height
     };
     
     // variables intialization
     isOpen = 1;
-    player = malloc(sizeof(player));
+    player = malloc(sizeof(Player));
     player->pos_x = player_default_x_pos;
     player->pos_y = player_default_y_pos;
+    player->pos_x_grid = player_default_x_grid_pos;
+    player->pos_y_grid = player_default_y_grid_pos;
     mouse_pos_x = 0;
     mouse_pos_y = 0;
-    tmp_angle = 0;
-    player->fov = 60;
-    step_angle = player->pov/projection_plan_default_wide;
+    player->fov = player_default_fov;
+    player->pov = player_default_pov;
+    step_angle = fov/projection_plan_default_wide;
 
     //----------------------------------
 	
@@ -103,110 +94,127 @@ int run(int argc, char **argv[])
             }
 
 
-			if(0 != SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255))
-			{
-				SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "[DEBUG] > %s", SDL_GetError());        
-				SDL_Quit(); 
-				return EXIT_FAILURE;
-			}
-			SDL_RenderClear( renderer );
-
-            // set ray end position
-            ray_x = mouse_pos_x - player->pos_x;
-            ray_y = mouse_pos_y - player->pos_y;
-
-            mouse_pos_x_old = mouse_pos_x;
-            mouse_pos_y_old = mouse_pos_y;
-            SDL_GetMouseState(&mouse_pos_x, &mouse_pos_y);
-
-			// drawing area
-
-            SDL_SetRenderDrawColor( renderer, 0, 0, 0, 255 );
-            SDL_RenderFillRect( renderer, &map );
-
-            // draw walls
-            for (int i = 0; i < map_width; i++)
+			if (isOpen)
             {
-                for (int j = 0; j < map_height; j++)
+                if(0 != SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255))
                 {
-                    if (map_mask[i][j] == 1)
+                    SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "[DEBUG] > %s", SDL_GetError());        
+                    SDL_Quit(); 
+                    return EXIT_FAILURE;
+                }
+                SDL_RenderClear( renderer );
+
+                // set ray end position
+                ray_x = mouse_pos_x - player->pos_x;
+                ray_y = mouse_pos_y - player->pos_y;
+
+                mouse_pos_x_old = mouse_pos_x;
+                mouse_pos_y_old = mouse_pos_y;
+                SDL_GetMouseState(&mouse_pos_x, &mouse_pos_y);
+
+                // drawing area
+
+                SDL_SetRenderDrawColor( renderer, 0, 0, 0, 255 );
+                SDL_RenderFillRect( renderer, &map );
+
+                // draw walls
+                for (int i = 0; i < map_width; i++)
+                {
+                    for (int j = 0; j < map_height; j++)
                     {
-                        SDL_SetRenderDrawColor( renderer, 255, 255, 255, 255 );
-                        SDL_Rect r = {
-                            i*wall_default_brick_size + space_between_map, j*wall_default_brick_size + space_between_map,
-                            wall_default_brick_size, wall_default_brick_size
-                        };
-                        SDL_RenderFillRect( renderer, &r );
+                        if (map_mask[i][j] == 1)
+                        {
+                            SDL_SetRenderDrawColor( renderer, 255, 255, 255, 255 );
+                            SDL_Rect r = {
+                                i*wall_default_brick_size + space_between_map, j*wall_default_brick_size + space_between_map,
+                                wall_default_brick_size, wall_default_brick_size
+                            };
+                            SDL_RenderFillRect( renderer, &r );
+                        }
                     }
                 }
+
+                //calculate the player pov
+                player->pov = (acosf((ray_x)/(sqrt(pow(ray_x, 2)+pow(ray_y, 2))))*180)/PI;
+
+                //draw player
+                SDL_SetRenderDrawColor( renderer, 0, 255, 0, 255 );
+                DrawCircle(renderer, player->pos_x, player->pos_y, 5);
+
+                //draw orientation straight
+                //SDL_SetRenderDrawColor( renderer, 255, 0, 0, 255 );
+                //SDL_RenderDrawLine(renderer, player->pos_x, player->pos_y, mouse_pos_x, mouse_pos_y);
+
+                //draw throwed rays
+
+                    //search frist horzontal collide pointe
+                current_ray_point_x = mouse_pos_x;
+                current_ray_point_y = mouse_pos_y;
+                get_ray_director_vector();
+                SDL_SetRenderDrawColor( renderer, 255, 0, 0, 255 );
+                SDL_RenderDrawLine(renderer, 0, 0, straight_vect_x, straight_vect_y);
+                calculate_ray_equation(); 
+                if (straight_vect_y < 0)
+                {
+                    get_horiz_collide_wall(-1);
+                }
+                else
+                {
+                    get_horiz_collide_wall(1);
+                }
+
+                if (straight_vect_x < 0)
+                {
+                    get_vert_collide_wall(-1);
+                }
+                else
+                {
+                    get_vert_collide_wall(1);
+                }
+                vert_collide_point_size = sqrtf(powf(vert_collide_point_x, 2) + powf(vert_collide_point_y, 2));
+                horiz_collide_point_size = sqrtf(powf(horiz_collide_point_x, 2) + powf(horiz_collide_point_y, 2));
+                current_ray_point_x = vert_collide_point_size < horiz_collide_point_size ? vert_collide_point_x : horiz_collide_point_x;
+                current_ray_point_y = vert_collide_point_size < horiz_collide_point_size ? vert_collide_point_y : horiz_collide_point_y;
+                //SDL_SetRenderDrawColor( renderer, 255, 0, 0, 255 );
+                //SDL_RenderDrawLine(renderer, player->pos_x, player->pos_y, current_ray_point_x, current_ray_point_y);
+
+                SDL_SetRenderDrawColor( renderer, 0, 0, 255, 255 );
+                DrawCircle(renderer, current_first_horiz_point_x, current_first_horiz_point_y, 5);
+
+                SDL_SetRenderDrawColor( renderer, 255, 0, 0, 255 );
+                DrawCircle(renderer, current_first_vert_point_x, current_first_vert_point_y, 5);
+                
+                
+
+                //-----------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                //render the renderer
+                SDL_RenderPresent(renderer);
+                if(0 != SDL_RenderClear(renderer))
+                {
+                        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "[DEBUG] > %s", SDL_GetError());        
+                        SDL_Quit(); 
+                        return EXIT_FAILURE;
+                }
+                //-----------------------------------------
             }
-
-            //calculate the player pov
-            player->pov = (acosf((ray_x)/(sqrt(pow(ray_x, 2)+pow(ray_y, 2))))*180)/PI;
-
-            //draw player
-            SDL_SetRenderDrawColor( renderer, 0, 255, 0, 255 );
-            DrawCircle(renderer, player->pos_x, player->pos_y, 5);
-
-            //draw orientation straight
-            SDL_SetRenderDrawColor( renderer, 255, 0, 0, 255 );
-            SDL_RenderDrawLine(renderer, player->pos_x, player->pos_y, mouse_pos_x, mouse_pos_y);
-
-            //draw throwed rays
-            tmp_angle = player->pov;
-
-
-            
-            
-
-            /*
-            //draw left rays
-            while (tmp_angle <= player->fov/2)
-            {
-               
-               tmp_angle += step_angle;
-            }
-            tmp_angle = player->pov;
-
-            //draw right rays
-            while (tmp_angle >= player->fov/2)
-            {
-               
-            }*/
-            
-
-            //-----------------------------------------
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-            //render the renderer
-			SDL_RenderPresent(renderer);
-			if(0 != SDL_RenderClear(renderer))
-			{
-					SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "[DEBUG] > %s", SDL_GetError());        
-					SDL_Quit(); 
-					return EXIT_FAILURE;
-			}
-            //-----------------------------------------
-
-            // variables controle
-
-            //-----------------------------------------
 
     	}
     }
@@ -268,36 +276,100 @@ void DrawCircle(SDL_Renderer* renderer, float centreX, float centreY, float radi
     }
 }
 
-void get_first_horiz_line_inter(float f_x, float f_y, float p_x, float p_y)
+void get_horiz_collide_wall(int direct)
 {
 
-}
+    get_first_oollide_point(direct);
+    current_first_horiz_point_y = next_horiz_line_y;
+    current_first_horiz_point_x = (current_first_horiz_point_y - current_ray_equ_b)/current_ray_equ_a;
 
-void get_collide_wall(float p_x, float p_y, float x, float y)
-{
-    float f_x, f_y;
-
-    get_first_horiz_line_inter(f_x, f_y, p_x, p_y);
-}
-
-void set_player_grid_pos(player *p)
-{
-    float ratio_x = p->pos_x/64;
-    float ratio_y = p->pos_y/64;
-
-    p->pos_x_grid = floorf(ratio_x);
-    p->pos_y_grid = floorf(ratio_y);
-}
-
-void calculate_player_orientaion_ray(float p_x, float p_y, float m_x, float m_y, float a, float b)
-{
-    a = (p_y - m_y)/(p_x - m_x);
-    b = p_y - a*p_x;
-}
-
-void get_ray_director_vector(player *p, float mx, float my, float *s_x, float *s_y)
-{
-    *s_x = mx - p->pos_x;
-    *s_y = my - p->pos_y;
+    do
+    {
+        if (map_mask[floorf(current_first_horiz_point_x/64) - 1][current_first_horiz_point_y/64 - 1] == 1)
+        {
+            is_touch_wall = 0;
+        }else
+        {
+            if (straight_vect_x > 0)
+            {
+                if (straight_vect_y < 0)
+                {
+                    
+                }
+                else
+                {
+                    /* code */
+                }
+                
+            }
+            else
     
+                if (straight_vect_y < 0)
+                {
+                    
+                }
+                else
+                {
+                    /* code */
+                }
+            }
+        }
+
+        
+    } while (is_out_of_bound() || is_touch_wall);
+    
+}
+
+void get_vert_collide_wall(int direct)
+{
+    int next_vert_line_x;
+
+    if (direct == 1)
+    {
+        next_vert_line_x = player->pos_x_grid*64 + 64;
+    }
+    else
+    {
+        next_vert_line_x = player->pos_x_grid*64;
+    }
+    current_first_vert_point_x = next_vert_line_x;
+    current_first_vert_point_y = current_ray_equ_b + current_first_vert_point_x*current_ray_equ_a;
+}
+
+void set_player_grid_pos()
+{
+    float ratio_x = player->pos_x/64;
+    float ratio_y = player->pos_y/64;
+
+    player->pos_x_grid = floorf(ratio_x);
+    player->pos_y_grid = floorf(ratio_y);
+}
+
+void calculate_ray_equation()
+{
+    current_ray_equ_a = (player->pos_y - current_ray_point_y)/(player->pos_x - current_ray_point_x);
+    current_ray_equ_b = player->pos_y - current_ray_equ_a*player->pos_x;
+}
+
+void get_ray_director_vector()
+{
+    straight_vect_x = current_ray_point_x - player->pos_x;
+    straight_vect_y = current_ray_point_y - player->pos_y;
+}
+
+int is_out_of_bound()
+{
+    return 0;
+}
+
+void get_first_horiz_collide_point(int direct)
+{
+    if (direct == 1)
+    {
+        next_horiz_line_y = player->pos_y_grid*64 + 64;        
+    }
+    else
+    {
+        next_horiz_line_y = player->pos_y_grid*64;
+    }
 }

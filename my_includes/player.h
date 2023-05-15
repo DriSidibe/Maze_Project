@@ -14,6 +14,6 @@ typedef struct player{
         float pov;
         float fov;
 }
-player;
+Player;
 
 #endif
