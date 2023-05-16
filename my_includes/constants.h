@@ -7,7 +7,7 @@
 
 
 int map_width = 640;
-int map_height = 512;
+int map_height = 640;
 
 // windows parameters
 int screen_width = 640;
@@ -22,8 +22,8 @@ int fov = 60;
 
 // player default setting
 int player_defaut_angle_faced = 45;
-int player_default_x_pos = 80;
-int player_default_y_pos = 80;
+int player_default_x_pos = 180;
+int player_default_y_pos = 210;
 int player_default_x_grid_pos = 1;
 int player_default_y_grid_pos = 1;
 int player_default_step = 10;
@@ -35,17 +35,17 @@ int projection_plan_default_wide = 320;
 int projection_plan_default_height = 200;
 
 //the map mask
-int map_mask[10][12] = {
-        {1,1,1,1,1,1,1,1},
-        {1,0,0,0,0,0,0,1},
-        {1,0,0,0,0,0,0,1},
-        {1,0,0,1,0,0,0,1},
-        {1,0,1,0,0,0,0,1},
-        {1,0,0,0,0,0,0,1},
-        {1,0,0,0,1,0,0,1},
-        {1,0,0,0,0,0,0,1},
-        {1,0,0,0,0,0,0,1},
-        {1,1,1,1,1,1,1,1}
+int map_mask[10][10] = {
+        {1,1,1,1,1,1,1,1,1,1},
+        {1,0,0,0,0,0,0,0,0,1},
+        {1,0,0,0,0,0,0,0,0,1},
+        {1,0,0,1,0,0,0,0,0,1},
+        {1,0,1,0,0,0,0,0,0,1},
+        {1,0,0,0,0,0,0,0,0,1},
+        {1,0,0,0,1,0,0,0,0,1},
+        {1,0,0,0,0,0,0,0,0,1},
+        {1,0,0,0,0,0,0,0,0,1},
+        {1,1,1,1,1,1,1,1,1,1}
     };
 
 #endif

@@ -2,20 +2,14 @@
 #define __GLOBAL_H__
 
 float current_ray_equ_a, current_ray_equ_b;
-float straight_vect_x, straight_vect_y;
-float ray_x, ray_y;
 int mouse_pos_x, mouse_pos_y;
-float mouse_pos_x_old;
-float mouse_pos_y_old;
-float vert_collide_point_x, vert_collide_point_y;
-float vert_collide_point_size, horiz_collide_point_size;
-float horiz_collide_point_x, horiz_collide_point_y;
 float step_angle;
-float current_ray_point_x, current_ray_point_y;
-int current_first_horiz_point_y, current_first_vert_point_x;
-float current_first_horiz_point_x, current_first_vert_point_y;
-int next_vert_line_x, next_horiz_line_y;
-int is_touch_wall = 1;
+float current_ray_x, current_ray_y;
+float orientation_ray_x, orientation_ray_y;
+float orientation_ray_director_x, orientation_ray_director_y;
+float current_ray_director_vector_x, current_ray_director_vector_y;
+float current_horizontal_collision_point_x, current_horizontal_collision_point_y;
+float first_horizontal_collided_line_y, first_horizontal_collided_line_x;
 float k;
 
 #endif
