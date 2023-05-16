@@ -7,15 +7,11 @@
 
 int run(int argc, char *argv[]);
 void DrawCircle(SDL_Renderer* renderer, float centreX, float centreY, float radius);
-void get_vert_collide_wall(int direct);
 void get_horizontal_collide_wall(int direct);
+void get_vertical_collide_wall(int direct);
 void set_player_grid_pos();
 void get_direction_ray_director_vector();
 void calculate_current_ray_equation();
-int is_horiz_out_of_bound();
-int is_vert_out_of_bound();
-void get_first_horiz_oollide_point(int direct);
-void get_first_vert_collide_point(int direct);
 void get_current_ray_director_vector();
 
 #endif

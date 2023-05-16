@@ -23,7 +23,7 @@ int fov = 60;
 // player default setting
 int player_defaut_angle_faced = 45;
 int player_default_x_pos = 180;
-int player_default_y_pos = 210;
+int player_default_y_pos = 80;
 int player_default_x_grid_pos = 1;
 int player_default_y_grid_pos = 1;
 int player_default_step = 10;
