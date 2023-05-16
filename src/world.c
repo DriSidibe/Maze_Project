@@ -151,8 +151,6 @@ int run(int argc, char *argv[])
                 current_ray_point_x = mouse_pos_x;
                 current_ray_point_y = mouse_pos_y;
                 get_ray_director_vector();
-                SDL_SetRenderDrawColor( renderer, 255, 0, 0, 255 );
-                SDL_RenderDrawLine(renderer, 0, 0, straight_vect_x, straight_vect_y);
                 calculate_ray_equation(); 
                 if (straight_vect_y < 0)
                 {
@@ -180,9 +178,11 @@ int run(int argc, char *argv[])
 
                 SDL_SetRenderDrawColor( renderer, 0, 0, 255, 255 );
                 DrawCircle(renderer, current_first_horiz_point_x, current_first_horiz_point_y, 5);
-
                 SDL_SetRenderDrawColor( renderer, 255, 0, 0, 255 );
-                DrawCircle(renderer, current_first_vert_point_x, current_first_vert_point_y, 5);
+                SDL_RenderDrawLine(renderer, player->pos_x, player->pos_y, current_first_horiz_point_x, current_first_horiz_point_y);
+
+                //SDL_SetRenderDrawColor( renderer, 255, 0, 0, 255 );
+                //DrawCircle(renderer, current_first_vert_point_x, current_first_vert_point_y, 5);
                 
                 
 
@@ -279,44 +279,46 @@ void DrawCircle(SDL_Renderer* renderer, float centreX, float centreY, float radi
 void get_horiz_collide_wall(int direct)
 {
 
-    get_first_oollide_point(direct);
+    get_first_horiz_oollide_point(direct);
     current_first_horiz_point_y = next_horiz_line_y;
     current_first_horiz_point_x = (current_first_horiz_point_y - current_ray_equ_b)/current_ray_equ_a;
 
+    int x = floor(current_first_horiz_point_x/wall_default_brick_size);
+    int y_bottom = current_first_horiz_point_y/wall_default_brick_size;
+    int y_top = current_first_horiz_point_y/wall_default_brick_size - 1;
+
     do
     {
-        if (map_mask[floorf(current_first_horiz_point_x/64) - 1][current_first_horiz_point_y/64 - 1] == 1)
+        if (direct == 1)
         {
-            is_touch_wall = 0;
-        }else
-        {
-            if (straight_vect_x > 0)
+            //printf("(%d, %d) top hor_y: %d\n", x, y_bottom, current_first_horiz_point_y);
+            printf("%d\n", map_mask[x][y_bottom]);
+            if (map_mask[x][y_bottom] == 1)
             {
-                if (straight_vect_y < 0)
-                {
-                    
-                }
-                else
-                {
-                    /* code */
-                }
-                
+                is_touch_wall = 0;
             }
             else
-    
-                if (straight_vect_y < 0)
-                {
-                    
-                }
-                else
-                {
-                    /* code */
-                }
+            {
+                current_first_horiz_point_y += wall_default_brick_size;
+                current_first_horiz_point_x = (current_first_horiz_point_y - current_ray_equ_b)/current_ray_equ_a;
+            }
+            
+        }
+        else
+        {
+            //printf("(%d, %d) bottom hor_y: %d\n", x, y_top, current_first_horiz_point_y);
+            if (map_mask[x][y_top] == 1)
+            {
+                is_touch_wall = 0;
+            }
+            else
+            {
+                current_first_horiz_point_y -= wall_default_brick_size;
+                current_first_horiz_point_x = (current_first_horiz_point_y - current_ray_equ_b)/current_ray_equ_a;
             }
         }
 
-        
-    } while (is_out_of_bound() || is_touch_wall);
+    } while (is_horiz_out_of_bound() == 1 || is_touch_wall == 1);
     
 }
 
@@ -357,12 +359,40 @@ void get_ray_director_vector()
     straight_vect_y = current_ray_point_y - player->pos_y;
 }
 
-int is_out_of_bound()
+int is_horiz_out_of_bound()
 {
-    return 0;
+    int x_right, x_left;
+    printf("%d", current_first_horiz_point_x);
+    x_right = map_width + space_between_map - wall_default_brick_size;
+    x_left = space_between_map + wall_default_brick_size;
+
+    if (current_first_horiz_point_y == wall_default_brick_size + space_between_map || current_first_horiz_point_y == map_height + space_between_map - wall_default_brick_size)
+        return 0;
+    if (current_first_horiz_point_x > x_right)
+    {
+        current_first_horiz_point_x = x_right;
+        current_first_vert_point_y = current_ray_equ_b + current_first_horiz_point_x*current_ray_equ_a;
+        return 0;
+    }
+    if (current_first_horiz_point_x < x_left)
+    {
+        current_first_horiz_point_x = x_left;
+        current_first_vert_point_y = current_ray_equ_b + current_first_horiz_point_x*current_ray_equ_a;
+        return 0;
+    }
+    return 1;
 }
 
-void get_first_horiz_collide_point(int direct)
+int is_vert_out_of_bound()
+{
+    if (current_first_vert_point_x <= 0 || current_first_vert_point_x > map_width + space_between_map)
+        return 0;
+    
+
+    return 1;
+}
+
+void get_first_horiz_oollide_point(int direct)
 {
     if (direct == 1)
     {
@@ -371,5 +401,17 @@ void get_first_horiz_collide_point(int direct)
     else
     {
         next_horiz_line_y = player->pos_y_grid*64;
+    }
+}
+
+void get_first_vert_collide_point(int direct)
+{
+    if (direct == 1)
+    {
+        next_vert_line_x = player->pos_y_grid*64 + 64;        
+    }
+    else
+    {
+        next_vert_line_x = player->pos_y_grid*64;
     }
 }

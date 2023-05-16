@@ -12,8 +12,9 @@ void get_horiz_collide_wall(int direct);
 void set_player_grid_pos();
 void get_ray_director_vector();
 void calculate_ray_equation();
-int is_out_of_bound();
-void get_first_horiz_collide_point(int direct);
+int is_horiz_out_of_bound();
+int is_vert_out_of_bound();
+void get_first_horiz_oollide_point(int direct);
 void get_first_vert_collide_point(int direct);
 
 #endif
