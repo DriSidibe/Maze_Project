@@ -27,7 +27,7 @@ int player_default_y_pos = 80;
 int player_default_x_grid_pos = 1;
 int player_default_y_grid_pos = 1;
 int player_default_step = 10;
-float player_default_fov = 60;
+float player_default_fov = PI/3;
 float player_default_pov = 45;
 
 // projection plan setting

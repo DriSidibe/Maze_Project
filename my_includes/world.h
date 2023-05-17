@@ -13,5 +13,6 @@ void set_player_grid_pos();
 void get_direction_ray_director_vector();
 void calculate_current_ray_equation();
 void get_current_ray_director_vector();
+void drawing_caluclation(SDL_Renderer *renderer);
 
 #endif

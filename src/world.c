@@ -30,6 +30,7 @@ int run(int argc, char *argv[])
     player->fov = player_default_fov;
     player->pov = player_default_pov;
     step_angle = fov/projection_plan_default_wide;
+    elementary_angle = player->fov/projection_plan_default_wide;
 
     //----------------------------------
 	
@@ -143,74 +144,60 @@ int run(int argc, char *argv[])
                 DrawCircle(renderer, player->pos_x, player->pos_y, 5);
 
                 //draw orientation ray
-                //SDL_SetRenderDrawColor( renderer, 255, 0, 0, 255 );
-                //SDL_RenderDrawLine(renderer, player->pos_x, player->pos_y, orientation_ray_x, orientation_ray_y);
+                SDL_SetRenderDrawColor( renderer, 255, 0, 0, 255 );
+                SDL_RenderDrawLine(renderer, player->pos_x, player->pos_y, orientation_ray_x, orientation_ray_y);
 
                 //draw orientation ray director vector
                 //SDL_SetRenderDrawColor( renderer, 255, 0, 0, 255 );
                 //SDL_RenderDrawLine(renderer, 0, 0, orientation_ray_director_x, orientation_ray_director_y);
-
-                //draw throwed rays
+                
+                //draw right throwed rays
                 current_ray_x = orientation_ray_x;
                 current_ray_y = orientation_ray_y;
-                get_current_ray_director_vector();
-                calculate_current_ray_equation();
-                
-                if (current_ray_director_vector_y < 0)
-                {
-                    get_horizontal_collide_wall(-1);
-                }
-                else
-                {
-                    get_horizontal_collide_wall(1);
-                }
-                
-                if (current_ray_director_vector_x < 0)
-                {
-                    get_vertical_collide_wall(-1);
-                }
-                else
-                {
-                    get_vertical_collide_wall(1);
-                }
-                
-                current_horizontal_vector_size = sqrt(pow((current_horizontal_collision_point_x - player->pos_x), 2)+pow((current_horizontal_collision_point_y - player->pos_y), 2));
-                current_vertical_vector_size = sqrt(pow((current_vertical_collision_point_x - player->pos_x), 2)+pow((current_vertical_collision_point_y - player->pos_y), 2));
 
-                collided_point_x = current_horizontal_vector_size < current_vertical_vector_size ? current_horizontal_collision_point_x : current_vertical_collision_point_x;
-                collided_point_y = current_horizontal_vector_size < current_vertical_vector_size ? current_horizontal_collision_point_y : current_vertical_collision_point_y;
-                
+                do
+                {
+                    drawing_caluclation(renderer);
 
+                    //SDL_SetRenderDrawColor( renderer, 255, 0, 0, 255 );
+                    //DrawCircle(renderer, collided_point_x, collided_point_y, 5);
+                    SDL_SetRenderDrawColor( renderer, 0, 0, 255, 255 );
+                    SDL_RenderDrawLine(renderer, player->pos_x, player->pos_y, collided_point_x, collided_point_y);
+
+                    current_ray_x = (orientation_ray_x - player->pos_x)*cos(total_angle_count) - (orientation_ray_y - player->pos_y)*sin(total_angle_count) + player->pos_x;
+                    current_ray_y = (orientation_ray_x - player->pos_x)*sin(total_angle_count) + (orientation_ray_y - player->pos_y)*cos(total_angle_count) + player->pos_y;
+
+                    total_angle_count += elementary_angle;
+
+                }while (total_angle_count < player->fov/2);
+                total_angle_count = 0;
 
                 /*
-                SDL_SetRenderDrawColor( renderer, 0, 0, 255, 255 );
-                DrawCircle(renderer, current_horizontal_collision_point_x, current_horizontal_collision_point_y, 5);
-                SDL_SetRenderDrawColor( renderer, 255, 0, 0, 255 );
-                DrawCircle(renderer, current_vertical_collision_point_x, current_vertical_collision_point_y, 5);
-                SDL_SetRenderDrawColor( renderer, 0, 0, 255, 255 );
-                SDL_RenderDrawLine(renderer, player->pos_x, player->pos_y, current_horizontal_collision_point_x, current_horizontal_collision_point_y);
-                SDL_SetRenderDrawColor( renderer, 255, 0, 0, 255 );
-                SDL_RenderDrawLine(renderer, player->pos_x, player->pos_y, current_vertical_collision_point_x, current_vertical_collision_point_y);
+                //draw left throwed rays
+                current_ray_x = orientation_ray_x;
+                current_ray_y = orientation_ray_y;
+
+                do
+                {
+                    drawing_caluclation(renderer);
+
+                    //SDL_SetRenderDrawColor( renderer, 255, 0, 0, 255 );
+                    //DrawCircle(renderer, collided_point_x, collided_point_y, 5);
+                    SDL_SetRenderDrawColor( renderer, 0, 255, 0, 255 );
+                    SDL_RenderDrawLine(renderer, player->pos_x, player->pos_y, collided_point_x, collided_point_y);
+
+                    current_ray_x = (orientation_ray_x - player->pos_x)*cos(-total_angle_count) - (orientation_ray_y - player->pos_y)*sin(-total_angle_count) + player->pos_x;
+                    current_ray_y = (orientation_ray_x - player->pos_x)*sin(-total_angle_count) + (orientation_ray_y - player->pos_y)*cos(-total_angle_count) + player->pos_y;
+
+                    total_angle_count += elementary_angle;
+                    printf("%f\n", total_angle_count);
+
+                }while (total_angle_count < player->fov/2);
+                total_angle_count = 0;
                 */
-                
-                
-                SDL_SetRenderDrawColor( renderer, 255, 0, 0, 255 );
-                DrawCircle(renderer, collided_point_x, collided_point_y, 5);
-                SDL_SetRenderDrawColor( renderer, 0, 0, 255, 255 );
-                SDL_RenderDrawLine(renderer, player->pos_x, player->pos_y, collided_point_x, collided_point_y);
-                
                 
 
                 //-----------------------------------------
-
-
-
-
-
-
-
-
-
 
 
 
@@ -447,4 +434,48 @@ void get_current_ray_director_vector()
 {
     current_ray_director_vector_x = current_ray_x - player->pos_x;
     current_ray_director_vector_y = current_ray_y - player->pos_y;
+}
+
+void drawing_caluclation(SDL_Renderer *renderer)
+{
+    get_current_ray_director_vector();
+    calculate_current_ray_equation();
+                    
+    if (current_ray_director_vector_y < 0)
+    {
+        get_horizontal_collide_wall(-1);
+    }
+    else
+    {
+        get_horizontal_collide_wall(1);
+    }
+                    
+    if (current_ray_director_vector_x < 0)
+    {
+        get_vertical_collide_wall(-1);
+    }
+    else
+    {
+        get_vertical_collide_wall(1);
+    }
+                    
+    current_horizontal_vector_size = sqrt(pow((current_horizontal_collision_point_x - player->pos_x), 2)+pow((current_horizontal_collision_point_y - player->pos_y), 2));
+    current_vertical_vector_size = sqrt(pow((current_vertical_collision_point_x - player->pos_x), 2)+pow((current_vertical_collision_point_y - player->pos_y), 2));
+
+    collided_point_x = current_horizontal_vector_size < current_vertical_vector_size ? current_horizontal_collision_point_x : current_vertical_collision_point_x;
+    collided_point_y = current_horizontal_vector_size < current_vertical_vector_size ? current_horizontal_collision_point_y : current_vertical_collision_point_y;
+                    
+
+
+    /*
+    SDL_SetRenderDrawColor( renderer, 0, 0, 255, 255 );
+    DrawCircle(renderer, current_horizontal_collision_point_x, current_horizontal_collision_point_y, 5);
+    SDL_SetRenderDrawColor( renderer, 255, 0, 0, 255 );
+    DrawCircle(renderer, current_vertical_collision_point_x, current_vertical_collision_point_y, 5);
+    SDL_SetRenderDrawColor( renderer, 0, 0, 255, 255 );
+    SDL_RenderDrawLine(renderer, player->pos_x, player->pos_y, current_horizontal_collision_point_x, current_horizontal_collision_point_y);
+    SDL_SetRenderDrawColor( renderer, 255, 0, 0, 255 );
+    SDL_RenderDrawLine(renderer, player->pos_x, player->pos_y, current_vertical_collision_point_x, current_vertical_collision_point_y);
+    */
+                    
 }
