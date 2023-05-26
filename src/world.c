@@ -86,6 +86,7 @@ int run(int argc, char *argv[])
                                 player->pos_x += k*orientation_ray_director_x;
                                 player->pos_y += k*orientation_ray_director_y;
                             }
+                            set_player_collision();
                             break;
                     }
                     break;
@@ -143,9 +144,11 @@ int run(int argc, char *argv[])
                 SDL_SetRenderDrawColor( renderer, 0, 255, 0, 255 );
                 DrawCircle(renderer, player->pos_x, player->pos_y, 5);
 
+                /*
                 //draw orientation ray
                 SDL_SetRenderDrawColor( renderer, 255, 0, 0, 255 );
                 SDL_RenderDrawLine(renderer, player->pos_x, player->pos_y, orientation_ray_x, orientation_ray_y);
+                */
 
                 //draw orientation ray director vector
                 //SDL_SetRenderDrawColor( renderer, 255, 0, 0, 255 );
@@ -155,6 +158,22 @@ int run(int argc, char *argv[])
                 current_ray_x = orientation_ray_x;
                 current_ray_y = orientation_ray_y;
 
+                //draw on throwed ray
+                drawing_caluclation(renderer);
+
+                //SDL_SetRenderDrawColor( renderer, 255, 0, 0, 255 );
+                //DrawCircle(renderer, collided_point_x, collided_point_y, 5);
+                //SDL_SetRenderDrawColor( renderer, 0, 0, 255, 255 );
+                //SDL_RenderDrawLine(renderer, player->pos_x, player->pos_y, collided_point_x, collided_point_y);
+                //SDL_SetRenderDrawColor( renderer, 255, 0, 0, 255 );
+                //DrawCircle(renderer, current_horizontal_collision_point_x, current_horizontal_collision_point_y, 5);
+                //SDL_SetRenderDrawColor( renderer, 0, 255, 0, 255 );
+                //DrawCircle(renderer, current_vertical_collision_point_x, current_vertical_collision_point_y, 5);
+                //printf("%f\n", current_ray_angle);
+                //printf("%f, %f\n", current_horizontal_collision_point_x, current_horizontal_collision_point_y);
+                //printf("%f, %f\n", current_vertical_collision_point_x, current_vertical_collision_point_y);
+
+                /*
                 do
                 {
                     drawing_caluclation(renderer);
@@ -171,6 +190,8 @@ int run(int argc, char *argv[])
 
                 }while (total_angle_count < player->fov/2);
                 total_angle_count = 0;
+                */
+                
 
                 /*
                 //draw left throwed rays
@@ -293,15 +314,14 @@ void get_horizontal_collide_wall(int direct)
     current_horizontal_collision_point_y = first_horizontal_collided_line_y;
     current_horizontal_collision_point_x = (current_horizontal_collision_point_y - current_ray_equ_b)/current_ray_equ_a;
 
-    int x = floor(current_horizontal_collision_point_x/wall_default_brick_size);
-    int y_bottom = current_horizontal_collision_point_y/wall_default_brick_size;
-    int y_top = current_horizontal_collision_point_y/wall_default_brick_size - 1;
+    x = floor(current_horizontal_collision_point_x/wall_default_brick_size);
+    y_bottom = current_horizontal_collision_point_y/wall_default_brick_size;
+    y_top = current_horizontal_collision_point_y/wall_default_brick_size - 1;
 
     while (1)
     {
         if (direct == 1)
         {
-            //printf("(%d, %d) top hor_y: %d\n", x, y_bottom, current_first_horiz_point_y);
             if (map_mask[x][y_bottom] == 1)
                 return;
             else
@@ -310,16 +330,17 @@ void get_horizontal_collide_wall(int direct)
                 current_horizontal_collision_point_x = (current_horizontal_collision_point_y - current_ray_equ_b)/current_ray_equ_a;
             }
 
+            
             if (current_horizontal_collision_point_x < space_between_map + wall_default_brick_size || current_horizontal_collision_point_x > map_width + space_between_map - wall_default_brick_size)
             {
                 current_horizontal_collision_point_y = map_height + space_between_map - wall_default_brick_size;
                 current_horizontal_collision_point_x = (current_horizontal_collision_point_y - current_ray_equ_b)/current_ray_equ_a;
                 return;
             }   
+            
         }
         else
         {
-            //printf("(%d, %d) bottom hor_y: %d\n", x, y_top, current_first_horiz_point_y);
             if (map_mask[x][y_top] == 1)
                 return;
             else
@@ -328,8 +349,10 @@ void get_horizontal_collide_wall(int direct)
                 current_horizontal_collision_point_x = (current_horizontal_collision_point_y - current_ray_equ_b)/current_ray_equ_a;
             }
 
+            
             if (current_horizontal_collision_point_x < space_between_map + wall_default_brick_size || current_horizontal_collision_point_x > map_width + space_between_map - wall_default_brick_size)
             {
+
                 current_horizontal_collision_point_y = space_between_map + wall_default_brick_size;
                 current_horizontal_collision_point_x = (current_horizontal_collision_point_y - current_ray_equ_b)/current_ray_equ_a;
                 return;
@@ -358,15 +381,33 @@ void get_vertical_collide_wall(int direct)
     current_vertical_collision_point_x = first_vertical_collided_line_x;
     current_vertical_collision_point_y = current_ray_equ_b + current_vertical_collision_point_x*current_ray_equ_a;
 
-    int y = floor(current_vertical_collision_point_y/wall_default_brick_size);
-    int x_right = current_vertical_collision_point_x/wall_default_brick_size;
-    int x_left = current_vertical_collision_point_x/wall_default_brick_size - 1;
+    y = floor(current_vertical_collision_point_y/wall_default_brick_size);
+    x_right = current_vertical_collision_point_x/wall_default_brick_size;
+    x_left = current_vertical_collision_point_x/wall_default_brick_size - 1;
 
     while (1)
     {
         if (direct == 1)
         {
-            //printf("(%d, %d) top hor_y: %d\n", x, y_bottom, current_first_horiz_point_y);
+            if (current_ray_director_vector_y > 0)
+            {
+                if (map_mask[x_right][y] == 0 && floor(current_vertical_collision_point_y/wall_default_brick_size)*wall_default_brick_size+wall_default_brick_size == space_between_map + map_height - wall_default_brick_size)
+                {
+                    current_vertical_collision_point_y = map_height + space_between_map - wall_default_brick_size;
+                    current_vertical_collision_point_x = (current_vertical_collision_point_y - current_ray_equ_b)/current_ray_equ_a;
+                    return;
+                }
+                
+            }else
+            {
+                if (map_mask[x_right][y] == 0 && floor(current_vertical_collision_point_y/wall_default_brick_size)*wall_default_brick_size == space_between_map + wall_default_brick_size)
+                {
+                    current_vertical_collision_point_y = space_between_map + wall_default_brick_size;
+                    current_vertical_collision_point_x = (current_vertical_collision_point_y - current_ray_equ_b)/current_ray_equ_a;
+                    return;
+                }
+            }
+            
             if (map_mask[x_right][y] == 1)
                 return;
             else
@@ -375,16 +416,27 @@ void get_vertical_collide_wall(int direct)
                 current_vertical_collision_point_y = current_ray_equ_b + current_vertical_collision_point_x*current_ray_equ_a;
             }
 
+            
             if (current_vertical_collision_point_y < space_between_map + wall_default_brick_size || current_vertical_collision_point_y > map_height + space_between_map - wall_default_brick_size)
             {
+                
                 current_vertical_collision_point_x = map_width + space_between_map - wall_default_brick_size;
                 current_vertical_collision_point_y = current_ray_equ_b + current_vertical_collision_point_x*current_ray_equ_a;
                 return;
-            }   
+            }    
         }
         else
         {
-            //printf("(%d, %d) bottom hor_y: %d\n", x, y_top, current_first_horiz_point_y);
+            if (current_ray_director_vector_y > 0)
+            {
+                if (map_mask[x_left][y] == 0 && floor(current_vertical_collision_point_y/wall_default_brick_size)*wall_default_brick_size+wall_default_brick_size == space_between_map + map_height - wall_default_brick_size)
+                {
+                    current_vertical_collision_point_y = map_height + space_between_map - wall_default_brick_size;
+                    current_vertical_collision_point_x = (current_vertical_collision_point_y - current_ray_equ_b)/current_ray_equ_a;
+                    return;
+                }
+                
+            }
             if (map_mask[x_left][y] == 1)
                 return;
             else
@@ -398,13 +450,12 @@ void get_vertical_collide_wall(int direct)
                 current_vertical_collision_point_x = space_between_map + wall_default_brick_size;
                 current_vertical_collision_point_y = current_ray_equ_b + current_vertical_collision_point_x*current_ray_equ_a;
                 return;
-            }  
+            }
         }
 
         y = floor(current_vertical_collision_point_y/wall_default_brick_size);
         x_right = current_vertical_collision_point_x/wall_default_brick_size;
         x_left = current_vertical_collision_point_x/wall_default_brick_size - 1;
-        
     }
 
 }
@@ -428,6 +479,7 @@ void get_direction_ray_director_vector()
 {
     orientation_ray_director_x = orientation_ray_x - player->pos_x;
     orientation_ray_director_y = orientation_ray_y - player->pos_y;
+    current_ray_angle = acos((current_ray_director_vector_x)/(sqrt(pow((current_ray_director_vector_x), 2)+pow(current_ray_director_vector_y, 2))))*180/PI;
 }
 
 void get_current_ray_director_vector()
@@ -477,5 +529,22 @@ void drawing_caluclation(SDL_Renderer *renderer)
     SDL_SetRenderDrawColor( renderer, 255, 0, 0, 255 );
     SDL_RenderDrawLine(renderer, player->pos_x, player->pos_y, current_vertical_collision_point_x, current_vertical_collision_point_y);
     */
+
+    SDL_SetRenderDrawColor( renderer, 255, 0, 0, 255 );
+    DrawCircle(renderer, current_vertical_collision_point_x, current_vertical_collision_point_y, 5);
+    SDL_RenderDrawLine(renderer, player->pos_x, player->pos_y, current_vertical_collision_point_x, current_vertical_collision_point_y);
                     
+}
+
+void set_player_collision()
+{
+    if (player->pos_x <= space_between_map + wall_default_brick_size)
+        player->pos_x = space_between_map + wall_default_brick_size + player_default_limit;
+    else if (player->pos_x >= space_between_map + map_width - wall_default_brick_size)
+        player->pos_x = space_between_map + map_width - wall_default_brick_size - player_default_limit;
+    
+    if (player->pos_y <= space_between_map + wall_default_brick_size)
+        player->pos_y = space_between_map + wall_default_brick_size + player_default_limit;
+    else if (player->pos_y >= space_between_map + map_width - wall_default_brick_size)
+        player->pos_y = space_between_map + map_width - wall_default_brick_size - player_default_limit;
 }

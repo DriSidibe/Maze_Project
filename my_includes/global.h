@@ -13,8 +13,13 @@ double current_vertical_collision_point_x, current_vertical_collision_point_y;
 double first_horizontal_collided_line_y, first_vertical_collided_line_x;
 double collided_point_x, collided_point_y;
 double current_horizontal_vector_size, current_vertical_vector_size;
+float current_ray_angle;
 double total_angle_count = 0;
 double elementary_angle;
+float player_default_limit = 10;
+int x, y_bottom, y_top, y, x_right, x_left;
+float current_ray_left_angle, current_ray_right_angle;
+float current_x_step, current_y_step;
 double k;
 
 #endif
